@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Railway Ticket Booking</title>
+</head>
+<body>
+
+<script>
+
+// Train Details
+let trains = [
+    { number: 12727, name: "Godavari Express", source: "Hyderabad", destination: "Visakhapatnam", seats: 50 },
+    { number: 12760, name: "Charminar Express", source: "Hyderabad", destination: "Chennai", seats: 40 },
+    { number: 17015, name: "Visakha Express", source: "Secunderabad", destination: "Bhubaneswar", seats: 30 }
+];
+
+let pnr = 10001;
+let ticket = null;
+
+// 1. Search Trains
+function searchTrains(source, destination) {
+    let availableTrains = trains.filter(train =>
+        train.source.toLowerCase() === source.toLowerCase() &&
+        train.destination.toLowerCase() === destination.toLowerCase()
+    );
+
+    return availableTrains;
+}
+
+// 2. Select Source
+function selectSource() {
+    return prompt("Enter source station (Hyderabad/Secunderabad):");
+}
+
+// 3. Select Destination
+function selectDestination() {
+    return prompt("Enter destination (Visakhapatnam/Chennai/Bhubaneswar):");
+}
+
+// 4. Check Availability
+function checkAvailability(train) {
+    return train.seats > 0;
+}
+
+// 5. Select Class
+function selectClass() {
+    return prompt("Select class:\n1. Sleeper\n2. 3AC\n3. 2AC\n4. 1AC");
+}
+
+// 6. Calculate Fare
+function calculateFare(selectedClass) {
+    let fare = 0;
+
+    switch (selectedClass) {
+        case "1":
+            fare = 500;
+            break;
+        case "2":
+            fare = 1000;
+            break;
+        case "3":
+            fare = 1500;
+            break;
+        case "4":
+            fare = 2000;
+            break;
+        default:
+            fare = 0;
+    }
+
+    return fare;
+}
+
+// 7. Book Ticket
+function bookTicket(train, passengerName, selectedClass, fare) {
+    if (checkAvailability(train)) {
+        train.seats--;
+
+        ticket = {
+            pnr: pnr++,
+            passenger: passengerName,
+            trainName: train.name,
+            trainNumber: train.number,
+            source: train.source,
+            destination: train.destination,
+            travelClass: selectedClass,
+            fare: fare,
+            status: "Confirmed"
+        };
+
+        return ticket;
+    }
+
+    return null;
+}
+
+// 8. Cancel Ticket
+function cancelTicket() {
+    if (ticket !== null && ticket.status === "Confirmed") {
+        ticket.status = "Cancelled";
+
+        let train = trains.find(t => t.number === ticket.trainNumber);
+        train.seats++;
+
+        return "Ticket cancelled successfully.";
+    }
+
+    return "No confirmed ticket available to cancel.";
+}
+
+// 9. Check PNR Status
+function checkPNRStatus(pnrNumber) {
+    if (ticket !== null && ticket.pnr == pnrNumber) {
+        return ticket.status;
+    }
+
+    return "Invalid PNR Number";
+}
+
+
+// Main Program
+let choice = prompt(
+    "RAILWAY TICKET BOOKING\n" +
+    "1. Book Ticket\n" +
+    "2. Cancel Ticket\n" +
+    "3. Check PNR Status\n" +
+    "Enter your choice:"
+);
+
+let output = "";
+
+if (choice === "1") {
+
+    let passengerName = prompt("Enter passenger name:");
+
+    let source = selectSource();
+    let destination = selectDestination();
+
+    let availableTrains = searchTrains(source, destination);
+
+    if (availableTrains.length > 0) {
+
+        output += "<h2>Available Trains</h2>";
+
+        availableTrains.forEach((train, index) => {
+            output += (index + 1) + ". " + train.name +
+                      " (Train No: " + train.number + ")" +
+                      " - Seats: " + train.seats + "<br>";
+        });
+
+        let trainChoice = Number(prompt("Select train number (1, 2, ...):"));
+        let selectedTrain = availableTrains[trainChoice - 1];
+
+        if (selectedTrain && checkAvailability(selectedTrain)) {
+
+            let classChoice = selectClass();
+            let fare = calculateFare(classChoice);
+
+            if (fare > 0) {
+
+                let classNames = {
+                    "1": "Sleeper",
+                    "2": "3AC",
+                    "3": "2AC",
+                    "4": "1AC"
+                };
+
+                let confirmation = prompt(
+                    "Ticket Fare: Rs." + fare +
+                    "\nConfirm booking? (yes/no)"
+                );
+
+                if (confirmation.toLowerCase() === "yes") {
+
+                    let bookedTicket = bookTicket(
+                        selectedTrain,
+                        passengerName,
+                        classNames[classChoice],
+                        fare
+                    );
+
+                    if (bookedTicket !== null) {
+                        output += "<h2>Ticket Booked Successfully!</h2>";
+                        output += "Passenger: " + bookedTicket.passenger + "<br>";
+                        output += "Train: " + bookedTicket.trainName + "<br>";
+                        output += "Train Number: " + bookedTicket.trainNumber + "<br>";
+                        output += "Source: " + bookedTicket.source + "<br>";
+                        output += "Destination: " + bookedTicket.destination + "<br>";
+                        output += "Class: " + bookedTicket.travelClass + "<br>";
+                        output += "Fare: Rs." + bookedTicket.fare + "<br>";
+                        output += "PNR Number: " + bookedTicket.pnr + "<br>";
+                        output += "Status: " + bookedTicket.status;
+                    }
+
+                } else {
+                    output += "Booking cancelled by passenger.";
+                }
+
+            } else {
+                output += "Invalid class selection.";
+            }
+
+        } else {
+            output += "Invalid train selection or no seats available.";
+        }
+
+    } else {
+        output += "No trains found for this route.";
+    }
+
+} else if (choice === "2") {
+
+    let result = cancelTicket();
+    output = result;
+
+} else if (choice === "3") {
+
+    let pnrNumber = prompt("Enter your PNR number:");
+    output = "PNR Status: " + checkPNRStatus(pnrNumber);
+
+} else {
+
+    output = "Invalid choice.";
+}
+
+document.write("<h1>Railway Ticket Booking Application</h1>");
+document.write(output);
+
+</script>
+
+</body>
+</html>
